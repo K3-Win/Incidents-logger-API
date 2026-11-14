@@ -23,3 +23,79 @@ incident-logger-api/
 ├── test_main.py         # Automated end-to-end lifecycle tests using pytest
 ├── requirements.txt     # Project dependencies
 └── .gitignore           # Excludes local SQLite database and cache files
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/K3-Win/incident-logger-api.git
+   cd incident-logger-api
+   ```
+
+2. Install dependencies:
+   ```bash
+   py -m pip install -r requirements.txt
+   ```
+
+### Running the Server
+
+Start the development server with Uvicorn:
+```bash
+py -m uvicorn main:app --reload
+```
+The API will be available at `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. Interactive Swagger documentation is accessible at `[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)`.
+
+## API Reference
+
+### Authentication
+
+Protected endpoints require an `Authorization` header with a Bearer token:
+- **Developer Role:** `Authorization: Bearer Dev888`
+- **Checker Role:** `Authorization: Bearer Checker888`
+
+### Endpoints
+
+| Method | Endpoint | Auth Required | Description | Success Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/health` | None | Health check endpoint | `200 OK` |
+| `POST` | `/api/incidents` | `Dev888` | Report a new service incident | `201 Created` |
+| `GET` | `/api/incidents` | None | Retrieve incidents (optional `?service=` filter) | `200 OK` |
+| `DELETE` | `/api/incidents` | `Checker888` | Resolve and remove an existing incident | `200 OK` |
+
+#### Example Requests
+
+**Report an Incident (`POST /api/incidents`)**
+```bash
+curl -X POST "http://127.0.0.1:8000/api/incidents" \
+  -H "Authorization: Bearer Dev888" \
+  -H "Content-Type: application/json" \
+  -d '{"service": "payment", "incident": "INC-01"}'
+```
+
+**Get Incidents by Service (`GET /api/incidents?service=payment`)**
+```bash
+curl -X GET "http://127.0.0.1:8000/api/incidents?service=payment"
+```
+
+**Resolve an Incident (`DELETE /api/incidents`)**
+```bash
+curl -X DELETE "http://127.0.0.1:8000/api/incidents" \
+  -H "Authorization: Bearer Checker888" \
+  -H "Content-Type: application/json" \
+  -d '{"service": "payment", "incident": "INC-01"}'
+```
+
+## Running Tests
+
+Execute the automated integration test suite (verifies `201`, `409`, `403`, `200`, and `404` state transitions and cleans up test records automatically):
+
+```bash
+py -m pytest test_main.py -v
+```
